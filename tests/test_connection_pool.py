@@ -185,8 +185,8 @@ class TestConnectionPoolURLParsing(object):
         }
 
     def test_weird_port(self):
-        # if port number excedes 16-bit integer, standard lib urlparse returns a None port
-        # so ConnectionPool.from_url assigns the default port
+        # if port number excedes 16-bit integer, standard lib urlparse returns
+        # a None port so ConnectionPool.from_url assigns the default port
         pool = redis.ConnectionPool.from_url('redis://localhost:638012')
         assert pool.connection_class == redis.Connection
         assert pool.connection_kwargs == {
