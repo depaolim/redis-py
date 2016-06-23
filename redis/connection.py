@@ -877,7 +877,7 @@ class ConnectionPool(object):
             if url.scheme == 'rediss':
                 url_options['connection_class'] = SSLConnection
         else:
-            raise ValueError('invalid scheme "{}"'.format(url.scheme))
+            raise ValueError('invalid scheme "%s"' % url.scheme)
 
         # last shot at the db value
         url_options['db'] = int(url_options.get('db', db or 0))
