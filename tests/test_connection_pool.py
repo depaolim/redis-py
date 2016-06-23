@@ -184,18 +184,6 @@ class TestConnectionPoolURLParsing(object):
             'password': None,
         }
 
-    def test_weird_port(self):
-        # if port number excedes 16-bit integer, standard lib urlparse returns
-        # a None port so ConnectionPool.from_url assigns the default port
-        pool = redis.ConnectionPool.from_url('redis://localhost:638012')
-        assert pool.connection_class == redis.Connection
-        assert pool.connection_kwargs == {
-            'host': 'localhost',
-            'port': 6379,  # default port!
-            'db': 0,
-            'password': None,
-        }
-
     def test_password(self):
         pool = redis.ConnectionPool.from_url('redis://:mypassword@localhost')
         assert pool.connection_class == redis.Connection
@@ -420,34 +408,15 @@ class TestSSLConnectionURLParsing(object):
 
 
 class TestConnectionPoolWeirdURLParsing(object):
-    def test_unknown_scheme_is_interpreted_as_redis_scheme(self):
-        pool = redis.ConnectionPool.from_url('uni:/dev/null')
-        assert pool.connection_class == redis.Connection
-        assert pool.connection_kwargs == {
-            'host': None,
-            'port': 6379,
-            'db': 0,
-            'password': None,
-        }
+    def test_unknown_scheme_raise_exception(self):
+        with pytest.raises(ValueError) as excinfo:
+            redis.ConnectionPool.from_url('uni:/dev/null')
+        assert 'invalid scheme "uni"' in str(excinfo.value)
 
-    def test_no_scheme_is_interpreted_as_redis_scheme(self):
-        pool = redis.ConnectionPool.from_url('/dev/null')
-        assert pool.connection_class == redis.Connection
-        assert pool.connection_kwargs == {
-            'host': None,
-            'port': 6379,
-            'db': 0,
-            'password': None,
-        }
-
-    def test_unix_scheme(self):
-        pool = redis.ConnectionPool.from_url('unix:/dev/null')
-        assert pool.connection_class == redis.UnixDomainSocketConnection
-        assert pool.connection_kwargs == {
-            'path': '/dev/null',
-            'db': 0,
-            'password': None,
-        }
+    def test_missing_scheme_raise_exception(self):
+        with pytest.raises(ValueError) as excinfo:
+            redis.ConnectionPool.from_url('/dev/null')
+        assert 'invalid scheme ""' in str(excinfo.value)
 
 
 class TestConnection(object):
